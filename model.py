@@ -43,11 +43,11 @@ def split_data(train_x, train_y, ratio):
     return train_x, train_y, (test_x, test_y)
 
 
-def main(batch_size=1, epochs=10, test_ratio=0.1):
-    print('args should be batch size, epochs, test_ratio')
+def main(batch_size=1, epochs=10, test_ratio=0.1, training_size= 6000):
+    print('args should be batch size, epochs, test_ratio, num training examples')
     train_x = np.load('training_data.npy')
     train_y = np.load('training_labels.npy')
-    train_x, train_y, test = split_data(train_x, train_y, test_ratio)
+    train_x, train_y, test = split_data(train_x[:training_size], train_y[:training_size], test_ratio)
     trained_model = train(train_x, train_y, test, batch_size, epochs)
     filename = 'trained_model' + str(epochs) + '_epochs_' + str(batch_size)+'_batch.h5'
     trained_model.save(filename)
@@ -56,8 +56,7 @@ def main(batch_size=1, epochs=10, test_ratio=0.1):
 if __name__ == "__main__":
     args = sys.argv
     print(int(args[1]), int(args[2]), float(args[3]))
-    print(100*float(args[3]))
-    main(int(args[1]), int(args[2]), float(args[3]))
+    main(int(args[1]), int(args[2]), float(args[3]), int(args[4]))
 
 
 
