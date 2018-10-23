@@ -32,22 +32,23 @@ def train(train_x, train_y, test, batch_size, num_epochs):
     return to_train
 
 
-def split_data(train_x, train_y, ratio):
-    size = len(train_y)
-    permutation = np.random.permutation(size)
+def split_data(train_x, train_y, ratio, training_size):
+    size = training_size
+    permutation = np.random.permutation(len(train_y))
     test_indexes = permutation[:int(size * ratio)]
+    train_indexes = permutation[int(size * ratio):size]
     test_x = train_x[test_indexes]
     test_y = train_y[test_indexes]
-    train_x = np.array([train_x[i] for i in range(size) if i not in test_indexes])
-    train_y = np.array([train_y[i] for i in range(size) if i not in test_indexes])
-    return train_x, train_y, (test_x, test_y)
+    train_x = train_x[train_indexes]
+    train_y = train_y[train_indexes]
+    return train_x[:training_size], train_y, (test_x, test_y)
 
 
-def main(batch_size=1, epochs=10, test_ratio=0.1, training_size= 6000):
+def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
     print('args should be batch size, epochs, test_ratio, num training examples')
     train_x = np.load('training_data.npy')
     train_y = np.load('training_labels.npy')
-    train_x, train_y, test = split_data(train_x[:training_size], train_y[:training_size], test_ratio)
+    train_x, train_y, test = split_data(train_x, train_y[:training_size], test_ratio, training_size)
     trained_model = train(train_x, train_y, test, batch_size, epochs)
     filename = 'trained_model' + str(epochs) + '_epochs_' + str(batch_size)+'_batch.h5'
     trained_model.save(filename)
