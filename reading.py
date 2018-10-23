@@ -126,9 +126,11 @@ class Box:
 
 
 if __name__ == "__main__":
-    a = create_df(3000)
+    a = create_df(300)
     grids = []
     for i in range(a.shape[0]):
+        if i % 10 == 0:
+            print(i)
         b = Box(a.iloc[i, 0], a.iloc[i, 1])
         b.fill_grid()
         b.compute_neighbors_features()
