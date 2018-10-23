@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import csv
+
 
 
 def read_pdb(filename):
@@ -131,6 +133,10 @@ if __name__ == "__main__":
         b.fill_grid()
         b.compute_neighbors_features()
         grids += [b.grid]
+    with open('training_data.csv', 'wb') as myfile:
+        wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+        wr.writerow(grids)
+
 
 
 
