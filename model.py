@@ -24,7 +24,8 @@ def model(shape=(20, 20, 20, 8)):
     return model
 
 
-def train():
+def train(train_x, train_y):
     to_train = model()
     to_train.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    to_train.fit(train_x, train_y, 5, epochs=10, validation_split=0.1)
 

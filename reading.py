@@ -126,18 +126,22 @@ class Box:
 
 
 if __name__ == "__main__":
-    a = create_df(300)
+    a = create_df(3000)
     grids = []
+    y = []
     for i in range(a.shape[0]):
         if i % 10 == 0:
             print(i)
         b = Box(a.iloc[i, 0], a.iloc[i, 1])
+        y += [a.iloc[i,2]]
         b.fill_grid()
         b.compute_neighbors_features()
         grids += [b.grid]
-    with open('training_data.csv', 'wb') as myfile:
-        wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-        wr.writerow(grids)
+    grids = np.array(grids)
+    np.save('training_data.npy', grids)
+    y = np.array(y)
+    np.save('training_labels.npy', y)
+
 
 
 
