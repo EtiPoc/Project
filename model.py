@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense, Conv3D, MaxPooling3D, Dropout, Flatten
-import argparse
+import sklearn.metrics
 import sys
 
 
@@ -44,13 +44,25 @@ def split_data(train_x, train_y, ratio, training_size):
     return train_x[:training_size], train_y, (test_x, test_y)
 
 
+def confusion_matrix(test_predictions, test_labels):
+    rounded_test_predictions = [round(prediction) for prediction in test_predictions]
+    matrix = sklearn.metrics.confusion_matrix(test_labels, rounded_test_predictions)
+    tn, fp, fn, tp = matrix.ravel()
+    print("true positives : %s, true_negatives:%s, false_positives:%s, false_negatives:%s" % (tp, tn, fp,fn))
+    accuracy = (tp+tn)/(tp+tn+fn+fp)
+    precision = tp/(tp+fp)
+    print('accuracy: %s, precision: %s' %(accuracy, precision))
+
+
 def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
     print('args should be batch size, epochs, test_ratio, num training examples')
     train_x = np.load('training_data.npy')
     train_y = np.load('training_labels.npy')
     train_x, train_y, test = split_data(train_x, train_y[:training_size], test_ratio, training_size)
-    trained_model = train(train_x, train_y, test, batch_size, epochs)
+    trained_model,  = train(train_x, train_y, test, batch_size, epochs)
+    test_predictions = trained_model.predict(test[0], batch_size=1)
     filename = 'trained_model' + str(epochs) + '_epochs_' + str(batch_size)+'_batch.h5'
+    confusion_matrix(test_predictions, test[1])
     trained_model.save(filename)
 
 

@@ -126,7 +126,7 @@ class Box:
 
 
 if __name__ == "__main__":
-    a = create_df(50)
+    a = create_df(3000)
     grids = []
     y = []
     for i in range(a.shape[0]):
