@@ -12,14 +12,14 @@ def model(shape=(20, 20, 20, 8)):
     # model.add(MaxPooling3D((2, 2, 2)))
     # model.add(Conv3D(128, (5, 5, 5), activation='relu'))
     model.add(MaxPooling3D((2, 2, 2)))
-    # model.add(Conv3D(256, (5, 5, 5), activation='relu'))
-    # model.add(MaxPooling3D((2, 2, 2)))
+    model.add(Conv3D(256, (3,3,3), activation='relu'))
+    model.add(MaxPooling3D((2, 2, 2)))
     model.add(Flatten())
     model.add(Dense(1000, activation='relu'))
     # model.add(Dense(500, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(200, activation='relu'))
-    # model.add(Dropout(0.5))
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
     return model
 
@@ -51,6 +51,7 @@ def confusion_matrix(test_predictions, test_labels):
     accuracy = (tp+tn)/(tp+tn+fn+fp)
     precision = tp/(tp+fp)
     print('accuracy: %s, precision: %s' %(accuracy, precision))
+    return accuracy, precision
 
 
 def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
@@ -60,8 +61,8 @@ def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
     train_x, train_y, test = split_data(train_x, train_y, test_ratio, training_size)
     trained_model = train(train_x, train_y, test, batch_size, epochs)
     test_predictions = trained_model.predict(test[0], batch_size=1)
-    filename = 'trained_model' + str(epochs) + '_epochs_' + str(batch_size)+'_batch.h5'
-    confusion_matrix(test_predictions, test[1])
+    accuracy, precision = confusion_matrix(test_predictions, test[1])
+    filename = 'trained_model' + str(accuracy) + '_accuracy_' + str(precision) + '_precision.h5'
     trained_model.save(filename)
 
 
