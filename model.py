@@ -1,32 +1,31 @@
 import numpy as np
 import pandas as pd
 from keras.models import Sequential
-from keras.layers import Dense, Conv3D, MaxPooling3D, Dropout, Flatten
+from keras.layers import Dense, Conv3D, MaxPooling3D, Dropout, Flatten, BatchNormalization, Activation
 import sklearn.metrics
 import sys
 
 
 def model(shape=(20, 20, 20, 8)):
     model = Sequential()
-    model.add(Conv3D(64, (5, 5, 5), activation='relu', input_shape=shape, data_format="channels_last"))
+    model.add(Conv3D(64, (3, 3, 3), activation='relu', input_shape=shape[1:], data_format="channels_last"))
     # model.add(MaxPooling3D((2, 2, 2)))
-    model.add(Conv3D(128, (5, 5, 5), activation='relu'))
+    # model.add(Conv3D(128, (5, 5, 5), activation='relu'))
     model.add(MaxPooling3D((2, 2, 2)))
-    model.add(Conv3D(256, (5, 5, 5), activation='relu'))
-    model.add(MaxPooling3D((2, 2, 2)))
+    # model.add(Conv3D(256, (5, 5, 5), activation='relu'))
+    # model.add(MaxPooling3D((2, 2, 2)))
     model.add(Flatten())
     model.add(Dense(1000, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(500, activation='relu'))
+    # model.add(Dense(500, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(200, activation='relu'))
-    model.add(Dropout(0.5))
+    # model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
     return model
 
 
 def train(train_x, train_y, test, batch_size, num_epochs):
-    to_train = model()
+    to_train = model(train_x.shape)
     to_train.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     to_train.fit(train_x, train_y, batch_size, epochs=num_epochs, validation_data=test)
     return to_train
@@ -68,7 +67,6 @@ def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
 
 if __name__ == "__main__":
     args = sys.argv
-    print(int(args[1]), int(args[2]), float(args[3]))
     main(int(args[1]), int(args[2]), float(args[3]), int(args[4]))
 
 

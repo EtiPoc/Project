@@ -55,7 +55,7 @@ def create_df(files_nb):
 
     for i in range(1, files_nb+1):
         rand = np.random.randint(files_nb, size=2) + 1
-        while(rand[0] == rand[1]):
+        while rand[0] == rand[1]:
             rand = np.random.randint(files_nb, size=2) + 1
 
         number_lig = (4-len(str(rand[0])))*"0" + str(rand[0])
@@ -90,9 +90,9 @@ class Box:
         if((X-self.center[0] > -self.size/2) and (X-self.center[0] < self.size/2)
                 and (Y-self.center[1] > -self.size/2) and (Y-self.center[1] < self.size/2)
                 and (Z-self.center[2] > -self.size/2) and (Z-self.center[2] < self.size/2)):
-            x_grid = int((X-self.center[0]/self.step) + self.size/2)
-            y_grid = int((Y-self.center[1]/self.step) + self.size/2)
-            z_grid = int((Z-self.center[2]/self.step) + self.size/2)
+            x_grid = int((X-self.center[0])/self.step + self.size/2)
+            y_grid = int((Y-self.center[1])/self.step + self.size/2)
+            z_grid = int((Z-self.center[2])/self.step + self.size/2)
             self.grid[x_grid, y_grid, z_grid, 0] += 1
 
             if is_lig:
@@ -115,14 +115,22 @@ class Box:
         for x in range(self.size):
             for y in range(self.size):
                 for z in range(self.size):
+
                     for i in [-1, 0, 1]:
                         for j in [-1, 0, 1]:
                             for k in [-1, 0, 1]:
+
                                 if (i, j, k) != (0, 0, 0):
                                     if x+i >= 0 and x+i < self.size:
                                         if y + j >= 0 and y + j < self.size:
                                             if (y + k >= 0 and z + k < self.size):
                                                 self.grid[x, y, z][4:8] += self.grid[x+i, y+j, z+k][0:4]
+
+    def normalize_features(self):
+
+        for i in range(self.grid[0, 0, 0]):
+            max = max(abs(self.grid[:, :, :][i]))
+            self.grid[:, :, :][i] /= max
 
 
 if __name__ == "__main__":
@@ -132,15 +140,15 @@ if __name__ == "__main__":
     for i in range(a.shape[0]):
         if i % 10 == 0:
             print(i)
-        b = Box(a.iloc[i, 0], a.iloc[i, 1])
-        y += [a.iloc[i,2]]
+        b = Box(a.iloc[i, 0], a.iloc[i, 1], 10, 2)
+        y += [a.iloc[i, 2]]
         b.fill_grid()
         b.compute_neighbors_features()
         grids += [b.grid]
     grids = np.array(grids)
-    np.save('training_data.npy', grids)
+    np.save('training_data2.npy', grids)
     y = np.array(y)
-    np.save('training_labels.npy', y)
+    np.save('training_labels2.npy', y)
 
 
 
