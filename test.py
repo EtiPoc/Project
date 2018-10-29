@@ -65,7 +65,7 @@ model = keras.models.load_model('94.17model-009.h5')
 test_df = create_test_df()
 predictions = process_test_df(test_df[0], test_df[1], model)
 pairs = find_best_pairs(predictions)
-pairs.to_csv('best_pairs')
+pairs.to_csv('best_pairs.csv')
 
 
 
