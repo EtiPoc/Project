@@ -5,7 +5,6 @@ import csv
 
 
 def read_pdb(filename):
-
     with open(filename, 'r') as file:
         strline_L = file.readlines()
     # print(strline_L)
@@ -38,7 +37,9 @@ def read_pdb(filename):
 
 # array : ([lig : ['X_list', 'Y_list', 'Z_list', 'atomtype_list']], [prot : same as lig], 1 if match 0 else)
 
-def create_df(files_nb):
+def create_df(files_nb, ratio=1):
+    """ratio is the number of negative sample for each positive one
+read through all data files and output a DataFrame with the indexes and data of each pair (all the positives and the negatives)"""
     data_list = pd.DataFrame()
 
     for i in range(1, files_nb+1):
@@ -53,7 +54,7 @@ def create_df(files_nb):
 
         data_list = data_list.append([[[X_list_lig, Y_list_lig, Z_list_lig, atomtype_list_lig], [X_list_pro, Y_list_pro, Z_list_pro, atomtype_list_pro], 1]])
 
-    for i in range(1, files_nb+1):
+    for i in range(1, ratio*(files_nb+1)):
         rand = np.random.randint(files_nb, size=2) + 1
         while rand[0] == rand[1]:
             rand = np.random.randint(files_nb, size=2) + 1
@@ -146,9 +147,9 @@ if __name__ == "__main__":
         b.compute_neighbors_features()
         grids += [b.grid]
     grids = np.array(grids)
-    np.save('training_data2.npy', grids)
+    np.save('training_data.npy', grids)
     y = np.array(y)
-    np.save('training_labels2.npy', y)
+    np.save('training_labels.npy', y)
 
 
 
