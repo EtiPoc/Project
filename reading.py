@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import csv
+import sys
 
 
 
@@ -38,10 +38,13 @@ def read_pdb(filename):
 # array : ([lig : ['X_list', 'Y_list', 'Z_list', 'atomtype_list']], [prot : same as lig], 1 if match 0 else)
 
 def create_df(files_nb, ratio=1):
-    """ratio is the number of negative sample for each positive one
-read through all data files and output a DataFrame with the indexes and data of each pair (all the positives and the negatives)"""
+    """
+    ratio is the number of negative sample for each positive one
+    read through all data files and output a DataFrame with the indexes and data of each pair (all the positives and the negatives)
+    """
     data_list = pd.DataFrame()
 
+    #add all the binding pairs
     for i in range(1, files_nb+1):
 
         number = (4-len(str(i)))*"0" + str(i)
@@ -54,6 +57,7 @@ read through all data files and output a DataFrame with the indexes and data of 
 
         data_list = data_list.append([[[X_list_lig, Y_list_lig, Z_list_lig, atomtype_list_lig], [X_list_pro, Y_list_pro, Z_list_pro, atomtype_list_pro], 1]])
 
+    #randomly select non-binding pairs
     for i in range(1, ratio*(files_nb+1)):
         rand = np.random.randint(files_nb, size=2) + 1
         while rand[0] == rand[1]:
@@ -62,9 +66,11 @@ read through all data files and output a DataFrame with the indexes and data of 
         number_lig = (4-len(str(rand[0])))*"0" + str(rand[0])
         filename_lig = "training_data/"+number_lig+"_lig_cg.pdb"
         X_list_lig, Y_list_lig, Z_list_lig, atomtype_list_lig = read_pdb(filename_lig)
+
         number_pro = (4-len(str(rand[1])))*"0" + str(rand[1])
         filename_pro = "training_data/"+number_pro+"_pro_cg.pdb"
         X_list_pro, Y_list_pro, Z_list_pro, atomtype_list_pro = read_pdb(filename_pro)
+
         data_list = data_list.append([[[X_list_lig, Y_list_lig, Z_list_lig, atomtype_list_lig], [X_list_pro, Y_list_pro, Z_list_pro, atomtype_list_pro], 0]])
     return data_list
 
@@ -75,7 +81,10 @@ def centroid(x_list, y_list, z_list):
 
 class Box:
     """
-    features = [nb of atoms in point, nb of lig in point, nb of polar in point, nb of polar-lig in point,
+    Representation of the data as a 3D voxel around the centroid of the ligand
+    size is the number of boxes along each axes, step is in Angstrom the step between each new box
+
+    the computed features are features = [nb of atoms in point, nb of lig in point, nb of polar in point, nb of polar-lig in point,
         nb of atoms in neighbors, nb of lig in neighbors, nb of polar in neighbors, nb of polar-lig in neighbors]
     """
     def __init__(self, lig_list, pro_list, size=20, step=1, features_size=8):
@@ -87,6 +96,7 @@ class Box:
         self.pro_list = pro_list
 
     def assign_point(self, X, Y, Z, atomtype, is_lig):
+        """add the atoms in the voxel if it is close enough to the center"""
 
         if((X-self.center[0] > -self.size/2) and (X-self.center[0] < self.size/2)
                 and (Y-self.center[1] > -self.size/2) and (Y-self.center[1] < self.size/2)
@@ -106,6 +116,7 @@ class Box:
                 self.grid[x_grid, y_grid, z_grid, 3] += 1
 
     def fill_grid(self):
+
         for i in range(len(self.lig_list[0])):
             self.assign_point(self.lig_list[0][i], self.lig_list[1][i], self.lig_list[2][i], self.lig_list[3][i], 1)
 
@@ -113,6 +124,7 @@ class Box:
             self.assign_point(self.pro_list[0][i], self.pro_list[1][i], self.pro_list[2][i], self.pro_list[3][i], 0)
 
     def compute_neighbors_features(self):
+        """for each square of the grid, look at all its neighbors and compute the relevant feature"""
         for x in range(self.size):
             for y in range(self.size):
                 for z in range(self.size):
@@ -122,34 +134,34 @@ class Box:
                             for k in [-1, 0, 1]:
 
                                 if (i, j, k) != (0, 0, 0):
+                                    #one node isn't a neighbor of itself
                                     if x+i >= 0 and x+i < self.size:
                                         if y + j >= 0 and y + j < self.size:
                                             if (y + k >= 0 and z + k < self.size):
                                                 self.grid[x, y, z][4:8] += self.grid[x+i, y+j, z+k][0:4]
 
-    def normalize_features(self):
 
-        for i in range(self.grid[0, 0, 0]):
-            max = max(abs(self.grid[:, :, :][i]))
-            self.grid[:, :, :][i] /= max
-
-
-if __name__ == "__main__":
-    a = create_df(3000, 4)
-    grids = []
+def main(ratio):
+    # read all the files
+    combinations = create_df(30, ratio)
+    datasets = []
     y = []
-    for i in range(a.shape[0]):
+    for i in range(combinations.shape[0]):
+        # for each of the chosen pairs, compute the voxel
         if i % 10 == 0:
             print(i)
-        b = Box(a.iloc[i, 0], a.iloc[i, 1], 10, 2)
-        y += [a.iloc[i, 2]]
+        b = Box(combinations.iloc[i, 0], combinations.iloc[i, 1], 10, 2)
+        y += [combinations.iloc[i, 2]]
         b.fill_grid()
         b.compute_neighbors_features()
-        grids += [b.grid]
-    grids = np.array(grids)
-    np.save('training_data.npy', grids)
+        datasets += [b.grid]
+    datasets = np.array(datasets)
+    np.save('training_data.npy', datasets)
     y = np.array(y)
     np.save('training_labels.npy', y)
 
 
-
+if __name__ == "__main__":
+    args = sys.argv
+    ratio = int(args[1])
+    main(ratio)

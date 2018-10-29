@@ -1,4 +1,4 @@
-import numpy as np
+import sys
 import pandas as pd
 import keras
 from reading import  Box
@@ -6,6 +6,8 @@ from testing_data_release.read_testing_pdb_file import read_pdb
 
 
 def create_test_df(files_nb=824):
+    """ read all the test files and return one data set for the ligands and one dataset for the proteins"""
+
     data_pro = pd.DataFrame()
     data_lig = pd.DataFrame()
     for i in range(1, files_nb + 1):
@@ -21,13 +23,15 @@ def create_test_df(files_nb=824):
         data_pro = data_pro.append(pd.DataFrame([[i, [X_list_pro, Y_list_pro, Z_list_pro, atomtype_list_pro]]], columns=['index_pro', 'data_pro']))
 
     data_lig.reset_index()
-    # data_lig.drop('index', 1, inplace=True)
     data_pro.reset_index()
-    # data_pro.drop('index', 1, inplace=True)
+
     return data_lig, data_pro
 
 
 def process_test_df(data_pro, data_lig, model):
+    """ for every possible combination of protein/ligand
+        performs the prediction with the trained model
+        returns them as a dataframe"""
     data_list = pd.DataFrame(columns=['idx_pro', 'idx_lig', 'pred'])
     for i in range(data_pro.shape[0]):
         if i % 10 == 0:
@@ -43,12 +47,9 @@ def process_test_df(data_pro, data_lig, model):
     return data_list
 
 
-def predict(model, final_df):
-    final_df['binding_proba'] = final_df.apply(lambda row: model.predict(row.box.reshape((1, 10, 10, 10, 8)))[0][0], 1)
-    return final_df
-
-
 def find_best_pairs(predictions):
+    """for each proteins, find the 10 ligands with the highest binding probability"""
+
     cols = ['pro_id', 'lig1_id', 'lig2_id', 'lig3_id', 'lig4_id', 'lig5_id', 'lig6_id', 'lig7_id', 'lig8_id', 'lig9_id', 'lig10_id' ]
     pairs = pd.DataFrame(columns=cols)
     for i in predictions.iloc[:, 0].unique():
@@ -57,15 +58,19 @@ def find_best_pairs(predictions):
     return pairs
 
 
+def main(model):
+    """
+    find the 10 best pairs according to the input model and save it to csv
+    """
+    model = keras.models.load_model(model)
+    data_lig, data_pro = create_test_df()
+    predictions = process_test_df(data_pro, data_lig, model)
+    pairs = find_best_pairs(predictions)
+    pairs.to_csv('best_pairs.csv')
 
 
-
-# def main():
-model = keras.models.load_model('94.17model-009.h5')
-test_df = create_test_df()
-predictions = process_test_df(test_df[0], test_df[1], model)
-pairs = find_best_pairs(predictions)
-pairs.to_csv('best_pairs.csv')
-
+if __name__ == "__main__":
+    args = sys.argv
+    main(args[1])
 
 
