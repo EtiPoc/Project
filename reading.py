@@ -135,7 +135,7 @@ class Box:
 
 
 if __name__ == "__main__":
-    a = create_df(3000)
+    a = create_df(3000, 4)
     grids = []
     y = []
     for i in range(a.shape[0]):
@@ -150,15 +150,6 @@ if __name__ == "__main__":
     np.save('training_data.npy', grids)
     y = np.array(y)
     np.save('training_labels.npy', y)
-
-
-
-
-
-
-
-
-
 
 
 
