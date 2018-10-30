@@ -143,7 +143,7 @@ class Box:
 
 def main(ratio):
     # read all the files
-    combinations = create_df(30, ratio)
+    combinations = create_df(3000, ratio)
     datasets = []
     y = []
     for i in range(combinations.shape[0]):
