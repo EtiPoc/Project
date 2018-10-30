@@ -32,7 +32,7 @@ def process_test_df(data_pro, data_lig, model):
     """ for every possible combination of protein/ligand
         performs the prediction with the trained model
         returns them as a dataframe"""
-    data_list = pd.DataFrame(columns=['idx_pro', 'idx_lig', 'pred'])
+    data_list = pd.DataFrame(columns=['idx_pro', 'idx_lig', 'binding_proba'])
     for i in range(data_pro.shape[0]):
         if i % 10 == 0:
             print(i)
@@ -43,14 +43,14 @@ def process_test_df(data_pro, data_lig, model):
             box.fill_grid()
             box.compute_neighbors_features()
             prediction = model.predict(box.grid.reshape((1, 10, 10, 10, 8)))[0][0]
-            data_list = data_list.append(pd.DataFrame([[i, j, prediction]], columns=['idx_pro', 'idx_lig', 'pred']))
+            data_list = data_list.append(pd.DataFrame([[i, j, prediction]], columns=['idx_pro', 'idx_lig', 'binding_proba']))
     return data_list
 
 
 def find_best_pairs(predictions):
     """for each proteins, find the 10 ligands with the highest binding probability"""
 
-    cols = ['pro_id', 'lig1_id', 'lig2_id', 'lig3_id', 'lig4_id', 'lig5_id', 'lig6_id', 'lig7_id', 'lig8_id', 'lig9_id', 'lig10_id' ]
+    cols = ['pro_id', 'lig1_id', 'lig2_id', 'lig3_id', 'lig4_id', 'lig5_id', 'lig6_id', 'lig7_id', 'lig8_id', 'lig9_id', 'lig10_id']
     pairs = pd.DataFrame(columns=cols)
     for i in predictions.iloc[:, 0].unique():
         best_pairs_i = list(predictions[predictions.idx_pro == i].nlargest(10, 'binding_proba').idx_lig)
