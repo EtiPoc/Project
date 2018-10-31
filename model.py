@@ -10,10 +10,10 @@ import matplotlib.pyplot as plt
 def model(shape=(20, 20, 20, 8)):
     model = Sequential()
     model.add(Conv3D(64, (3, 3, 3), activation='relu', input_shape=shape[1:], data_format="channels_last", padding="same"))
-    model.add(Conv3D(256, (3, 3, 3), activation='relu'))
+    model.add(MaxPooling3D((2, 2, 2)))
+    model.add(Conv3D(256, (3, 3, 3), activation='relu', padding="same"))
     # model.add(MaxPooling3D((2, 2, 2)))
     model.add(Conv3D(512, (3, 3, 3), activation='relu'))
-    model.add(MaxPooling3D((2, 2, 2)))
     model.add(Flatten())
     model.add(Dense(1000, activation='relu'))
     model.add(Dropout(0.5))
