@@ -50,6 +50,26 @@ def process_test_df(data_pro, data_lig, model):
     return data_list
 
 
+def process_test_df2(data_pro, data_lig, model):
+    preds = pd.DataFrame(columns=['idx_pro', 'idx_lig', 'binding_proba'])
+    for i in range(data_pro.shape[0]):
+        if i % 10 == 0:
+            print(i)
+        batch = []
+        batch_preds = pd.DataFrame(columns=['idx_pro', 'idx_lig', 'binding_proba'])
+        for j in range(data_lig.shape[0]):
+            if j % 100 == 0:
+                print(i, j)
+            box = Box(data_lig.iloc[j, 1], data_pro.iloc[i, 1], 10, 2)
+            box.fill_grid()
+            box.compute_neighbors_features()
+            batch += [box.grid]
+            batch_preds = batch_preds.append(pd.DataFrame([[data_pro.iloc[i, 0], data_lig.iloc[j, 0]]], columns=['idx_pro', 'idx_lig']))
+        batch_predictions = model.predict(np.array(batch).reshape((len(batch), 10, 10, 10, 8)))
+        batch_preds.binding_proba = batch_predictions
+        preds = preds.append(batch_preds)
+    return preds
+
 def find_best_pairs(predictions):
     """for each proteins, find the 10 ligands with the highest binding probability"""
 
@@ -78,7 +98,7 @@ def evaluate_model(model):
         datasets += [b.grid]
     all_0 = np.array(datasets)
     y = np.array(y)
-    test_predictions = model.predict(all_0[0], batch_size=1)
+    test_predictions = model.predict(all_0, batch_size=100)
     confusion_matrix(test_predictions, y)
 
     combinations = create_df(100, 10)
@@ -95,7 +115,7 @@ def evaluate_model(model):
         datasets += [b.grid]
     mixed = np.array(datasets)
     y = np.array(y)
-    test_predictions = model.predict(mixed[0], batch_size=1)
+    test_predictions = model.predict(mixed, batch_size=1)
     confusion_matrix(test_predictions, y)
 
 
@@ -113,5 +133,4 @@ def main(model):
 if __name__ == "__main__":
     args = sys.argv
     main(args[1])
-
 

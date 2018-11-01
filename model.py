@@ -12,7 +12,6 @@ def model(shape=(20, 20, 20, 8)):
     model.add(Conv3D(64, (3, 3, 3), activation='relu', input_shape=shape[1:], data_format="channels_last", padding="same"))
     model.add(MaxPooling3D((2, 2, 2)))
     model.add(Conv3D(256, (3, 3, 3), activation='relu', padding="same"))
-    # model.add(MaxPooling3D((2, 2, 2)))
     model.add(Conv3D(512, (3, 3, 3), activation='relu'))
     model.add(Flatten())
     model.add(Dense(1000, activation='relu'))
@@ -94,7 +93,6 @@ def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
     trained_model = train(train_x, train_y, test, batch_size, epochs)
 
     filename = 'trained_model_'+str(trained_model.history.history['val_acc'][-1])+'.h5'
-    np.save('test_set_'+'trained_model_'+str(trained_model.history.history['val_acc'][-1])+'.npy', test)
 
     trained_model.save(filename)
     save_plots(trained_model)
@@ -102,7 +100,7 @@ def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
     test_predictions = trained_model.predict(test[0], batch_size=1)
     confusion_matrix(test_predictions, test[1])
 
-
+    np.save('test_set_' + 'trained_model_' + str(trained_model.history.history['val_acc'][-1]) + '.npy', test)
 
 if __name__ == "__main__":
     args = sys.argv
