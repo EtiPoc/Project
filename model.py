@@ -94,6 +94,8 @@ def main(batch_size=1, epochs=10, test_ratio=0.1, training_size=6000):
     trained_model = train(train_x, train_y, test, batch_size, epochs)
 
     filename = 'trained_model_'+str(trained_model.history.history['val_acc'][-1])+'.h5'
+    np.save('test_set_'+'trained_model_'+str(trained_model.history.history['val_acc'][-1])+'.npy', test)
+
     trained_model.save(filename)
     save_plots(trained_model)
 

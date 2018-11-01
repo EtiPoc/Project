@@ -128,11 +128,9 @@ class Box:
         for x in range(self.size):
             for y in range(self.size):
                 for z in range(self.size):
-
                     for i in [-1, 0, 1]:
                         for j in [-1, 0, 1]:
                             for k in [-1, 0, 1]:
-
                                 if (i, j, k) != (0, 0, 0):
                                     #one node isn't a neighbor of itself
                                     if x+i >= 0 and x+i < self.size:
