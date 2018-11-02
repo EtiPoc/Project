@@ -70,12 +70,13 @@ def process_test_df2(data_pro, data_lig, model):
         preds = preds.append(batch_preds)
     return preds
 
+
 def find_best_pairs(predictions):
     """for each proteins, find the 10 ligands with the highest binding probability"""
 
     cols = ['pro_id', 'lig1_id', 'lig2_id', 'lig3_id', 'lig4_id', 'lig5_id', 'lig6_id', 'lig7_id', 'lig8_id', 'lig9_id', 'lig10_id']
     pairs = pd.DataFrame(columns=cols)
-    for i in predictions.iloc[:, 0].unique():
+    for i in predictions.loc[:, 'idx_pro'].unique():
         best_pairs_i = list(predictions[predictions.idx_pro == i].nlargest(10, 'binding_proba').idx_lig)
         pairs = pairs.append(pd.DataFrame([[i]+best_pairs_i], columns=cols))
     return pairs
@@ -124,8 +125,9 @@ def main(model):
     find the 10 best pairs according to the input model and save it to csv
     """
     model = keras.models.load_model(model)
-    data_lig, data_pro = create_test_df()
-    predictions = process_test_df(data_pro, data_lig, model)
+    data_lig, data_pro = create_test_df(10)
+    predictions = process_test_df2(data_pro, data_lig, model)
+    predictions.to_csv('predictions.csv')
     pairs = find_best_pairs(predictions)
     pairs.to_csv('best_pairs.csv')
 
